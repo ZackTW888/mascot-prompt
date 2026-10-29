@@ -66,6 +66,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .key b{font-size:17px;font-weight:900;width:28px;height:28px;display:grid;place-items:center;border-radius:6px;color:#fff}
 .key.a b{background:#3d3f6f}.key.t b{background:#c27a2c}.key.m b{background:#2f7d6a}
 .key span{font-size:13px;line-height:1.3;font-weight:700}
+.key span small{display:block;font-size:13px}
 .nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:25;background:var(--panel);border-block:1px solid var(--line)}
 .nav .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
 .nav .wrap::-webkit-scrollbar{display:none}
@@ -254,7 +255,7 @@ main{padding-block:24px 80px}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .jump{display:none}
 
-@media (max-width:1020px){
+@media (max-width:1100px){
   .maker{grid-template-columns:minmax(0,1fr)}
   .out{position:static;max-height:none;overflow:visible}
   .pout{max-height:none}
@@ -284,6 +285,33 @@ main{padding-block:24px 80px}
   .sgroup{grid-template-columns:minmax(0,1fr)}
   .sgroup > span{padding-top:0}
 }
+@media (max-width:520px){
+  .legend{gap:6px}
+  .key{padding:4px 10px 4px 4px}
+  .key span small{display:none}
+  .step-h{flex-wrap:wrap}
+  .step-h small{flex-basis:100%;margin-left:40px;text-align:left;margin-top:-8px}
+  .stiles{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:30%;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+  .stile{scroll-snap-align:start}
+  p.swipe{display:block}
+  .qboard{grid-template-columns:minmax(0,1.2fr) 26px minmax(0,.85fr)}
+  .qi.arch small{display:none}
+  .qi .qt{font-size:13px}
+  .qi{padding:8px}
+  .custom .field{width:calc(50% - 50px)}
+}
+.swipe{display:none;font-size:12px;color:var(--muted);margin-top:4px}
+@media (pointer:coarse){
+  input[type=text],input[type=number],select{font-size:16px!important}
+  .chip,.szb,.btn,.seg button,.ptabs button{min-height:40px}
+  .quick .chip{padding:6px 11px;font-size:13px}
+  .btn.sm{min-height:38px}
+}
+@media (hover:none){
+  .chip:hover:not([aria-pressed="true"]),.szb:hover:not([aria-pressed="true"]),.stile:hover:not([aria-pressed="true"]),.btn:hover:not(.primary):not(.navy),.ctx:hover:not([aria-pressed="true"]),.qlv:hover:not([aria-pressed="true"]),.qi:hover:not(.sel):not(.paired):not(.ok):not(.bad){border-color:var(--line)}
+}
+.jump.away{opacity:0;pointer-events:none;transform:translateY(10px)}
+.jump{transition:opacity .2s,transform .2s}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -296,9 +324,9 @@ main{padding-block:24px 80px}
       <p>先理解消費者動機，再選擇品牌原型。把原型轉成吉祥物的個性、造型與繪製風格，再依印刷、包裝、企業氛圍和尺寸，組出可以直接貼進 AI 繪圖工具的指令。</p>
     </div>
     <div class="legend" aria-label="ATM 指令架構">
-      <div class="key a"><b>A</b><span>角色<br>吉祥物設計師</span></div>
-      <div class="key t"><b>T</b><span>目標<br>原型與情境</span></div>
-      <div class="key m"><b>M</b><span>方法<br>風格與尺寸</span></div>
+      <div class="key a"><b>A</b><span>角色<small>吉祥物設計師</small></span></div>
+      <div class="key t"><b>T</b><span>目標<small>原型與情境</small></span></div>
+      <div class="key m"><b>M</b><span>方法<small>風格與尺寸</small></span></div>
     </div>
   </div>
 </header>
@@ -348,6 +376,7 @@ main{padding-block:24px 80px}
       <div class="card">
         <div class="step-h"><span class="no">4</span><h3>繪製風格</h3><small>10 種推薦的品牌吉祥物風格</small></div>
         <div class="stiles" id="stiles"></div>
+        <p class="swipe">← 左右滑動看全部 10 種風格 →</p>
         <p class="sdesc" id="sdesc"></p>
       </div>
 
@@ -1189,6 +1218,7 @@ function show(v){
   if(!['make','wheel','styles','quiz'].includes(v))v='make';
   $$('[data-v]').forEach(s=>s.hidden=s.dataset.v!==v);
   $$('.nav [data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===v));
+  const ab=$(`.nav [data-view="${v}"]`);if(ab)ab.parentElement.scrollLeft=ab.offsetLeft-24;
   if(v==='wheel')renderWheel(); if(v==='styles')renderStyles(); if(v==='quiz'){if(!Q.left.length)newRound();else renderQuiz()}
 }
 function go(v){show(v);try{history.replaceState(null,'','#'+v)}catch(_){}window.scrollTo({top:0})}
@@ -1243,6 +1273,7 @@ $('#copyBtn').addEventListener('click',()=>{
   const fallback=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);toast('已選取指令，請按 Ctrl/⌘ + C 複製')};
   try{navigator.clipboard.writeText(txt).then(()=>toast('已複製指令'),fallback)}catch(_){fallback()}
 });
+if(window.IntersectionObserver)new IntersectionObserver(es=>es.forEach(e=>$('#jump').classList.toggle('away',e.isIntersecting))).observe($('#out'));
 $('#jump').addEventListener('click',()=>$('#out').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
 window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
 
